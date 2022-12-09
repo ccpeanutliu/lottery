@@ -1,10 +1,175 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>cphuamao</title>
-  </head>
-  <body>
-    <h1>hello</h1>
-  </body>
+
+<head>
+    <meta name="screen-orientation" content="portrait">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" />
+    <title>IM CONNECTED 抽獎</title>
+    <link rel="stylesheet" type="text/css" href="css/reset.css">
+    <link rel="stylesheet" type="text/css" href="css/wall.css">
+    <link rel="stylesheet" type="text/css" href="css/utils.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+</head>
+
+<body>
+    <div id="main" class="wall">
+        <div id="title">IM Connected Lottery</div>
+        <div id="sidebar">
+            <h2>獎品</h2>
+            <div v-for="(gifts, level, index) in prize">
+                {{index==0?'&nbsp;,':'│'}}<br>
+                {{index==Object.keys(prize).length-1? '└':'├'}}─&nbsp;<span style="color:orange">{{level}}</span>
+                <div v-for="(gift, g_index) in gifts">
+                    <div v-if="g_index != 0">{{'│'+'&nbsp;'.repeat(4)+'│'}}</div>
+                    {{index==Object.keys(prize).length-1? '&nbsp;'.repeat(3):'│'}}
+                    {{'&nbsp;'.repeat(2)}}
+                    {{g_index==Object.keys(gifts).length-1? '└':'├'}}─&nbsp;<span style="color: CornflowerBlue">{{gift.name}}</span>
+                    <div v-for="n_index in gift.amount" :class="{'active':`${level};${gift.name};${n_index}`==selected}" @click="selected=`${level};${gift.name};${n_index}`" class="gift-item">
+                        {{index==Object.keys(prize).length-1? '&nbsp;'.repeat(3):'│'}}
+                        {{'&nbsp;'.repeat(2)}}
+                        {{g_index==Object.keys(gifts).length-1? '&nbsp;'.repeat(3):'│'}}
+                        {{'&nbsp;'.repeat(2)}}
+                        {{n_index==gift.amount? '└':'├'}}&nbsp;[{{'&nbsp;'.repeat(4)}}{{result[`${level};${gift.name};${n_index}`]||'&nbsp;'.repeat(11)}}{{'&nbsp;'.repeat(4)}}]
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="canvas-container"></div>
+        <div id="tools" class="tools">
+            <button id="start" class="pure-button button-secondary" @click="toggle">{{state=='running'?'停止':'開始'}}</button>
+            <button class="pure-button button-warning" @click="reset">重置</button>
+        </div>
+    </div>
+    <div id="result-container" class="result" onClick="document.dispatchEvent(new KeyboardEvent('keydown',{'keyCode':13}));">
+        <div id="result-level"></div>
+        <div id="result-gift"></div>
+        <span id="result-text"></span>
+    </div>
+    <script type="text/javascript" src="js/zepto.js"></script>
+    <script type="text/javascript" src="js/vue.js"></script>
+    <script type="text/javascript" src="js/tagcanvas.js"></script>
+    <script type="text/javascript" src="js/member.js"></script>
+    <script type="text/javascript" src="js/prize.js"></script>
+    <script type="text/javascript">
+    new Vue({
+        el: '#main',
+        data: {
+            selected: null,
+            canvas: null,
+            state: 'init',
+            result: {}
+        },
+        mounted() {
+            $(document).keydown((event) => {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '32'||keycode == '13') {
+                    event.preventDefault();
+                    this.toggle()
+                }
+            })
+            this.result = JSON.parse(localStorage.getItem('result')) || {};
+            this.update();
+
+            const container = document.getElementById('canvas-container');
+            this.canvas = document.createElement('canvas');
+            this.canvas.id = 'myCanvas';
+            this.canvas.width = container.offsetWidth;
+            this.canvas.height = container.offsetHeight;
+            this.canvas.innerHTML = this.createHTML();
+            container.appendChild(this.canvas);
+
+            TagCanvas.Start('myCanvas', '', {
+                textColour: null,
+                initial: this.speed(),
+                dragControl: 1,
+                textHeight: 15 // font size
+            });
+        },
+        methods: {
+            update: function() {
+                for (const [level, gifts] of Object.entries(prize)) {
+                    for (const gift of gifts) {
+                        for (var n_index = 1; n_index <= gift.amount; n_index++) {
+                            const key = `${level};${gift.name};${n_index}`;
+                            if (!this.result[key]) {
+                                this.selected = key;
+                                return
+                            }
+                        }
+                    }
+                }
+                this.selected = null;
+            },
+            createHTML: function() {
+                var html = ['<ul>'];
+                member.forEach((item, index) => {
+                    item.index = index;
+                    const color = Object.values(this.result).includes(item.name) ? 'gray' : 'white';
+                    html.push('<li><a href="#" style="color: ' + color + ';">' + item.name + '</a></li>');
+                });
+                html.push('</ul>');
+                return html.join('');
+            },
+            reset: function() {
+                if (confirm('確定要重置嗎！')) {
+                    localStorage.clear();
+                    location.reload(true);
+                }
+            },
+            lottery: function() {
+                const list = member.filter(x => (
+                    !Object.values(this.result).includes(x.name)
+                ));
+                return list[Math.floor(Math.random() * list.length)];
+            },
+            toggle: function() {
+                if (this.state == 'init') {
+                    if (!!this.selected) {
+                        TagCanvas.SetSpeed('myCanvas', [1.5, 1]);
+                        this.state = 'running';
+                    } else {
+                        $('#result-container').css('display', 'flex');
+                        $('#result-level').text('');
+                        $('#result-gift').text('');
+                        $('#result-text').text('沒有獎品了!');
+                        $('#main').addClass('mask');
+                        this.state = 'result';
+                    }
+                } else if (this.state == 'running') {
+                    TagCanvas.SetSpeed('myCanvas', this.speed());
+
+                    const [level, gift, amount] = this.selected ? this.selected.split(';') : ['', '', ''];
+                    const luckyOne = this.lottery();
+                    if (!!this.selected) {
+                        this.result[this.selected] = luckyOne.name;
+
+                    }
+                    localStorage.setItem('result', JSON.stringify(this.result));
+                    this.update();
+
+                    this.canvas.innerHTML = this.createHTML();
+                    $('#result-container').css('display', 'flex');
+
+                    $('#result-level').text(level);
+                    $('#result-gift').text(gift);
+                    $('#result-text').text(luckyOne.name);
+                    $('#main').addClass('mask');
+
+                    this.state = 'result';
+                } else if (this.state == 'result') {
+                    $('#result-container').css('display', 'none');
+                    $('#main').removeClass('mask');
+                    this.state = 'init';
+                }
+            },
+            speed: function() {
+                return [0.1 * Math.random() + 0.01, -(0.1 * Math.random() + 0.01)];
+            }
+
+        }
+    });
+    </script>
+</body>
+
 </html>

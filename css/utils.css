@@ -1,0 +1,80 @@
+body, html {
+    width: 100%;
+    height: 100%;
+}
+.result {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    left: 0; top: 0;
+    text-align: center;
+    display: none;
+}
+.result span {
+    display: inline-block;
+    font-size: 36px;
+    background: #fff;
+    line-height: 30px;
+    color: #000;
+    margin: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.8);
+    padding: 10px;
+}
+
+.result div{
+    display: block;
+    color: white;
+    font-size:  48px;
+    padding: 36px 0;
+}
+
+.result #result-level{
+    color: orange;
+}
+
+.result #result-gift{
+    font-size: 64px;
+    color: CornflowerBlue;
+}
+
+.pure-button {
+    width:50px;
+    display: inline-block;
+    zoom: 1;
+    line-height: normal;
+    white-space: nowrap;
+    vertical-align: middle;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 100%;
+    padding: 10px 0;
+    color: rgba(0,0,0,.8);
+    border: 0 rgba(0,0,0,0);
+    border-radius: 2px;
+    background-color: #E6E6E6;
+    text-decoration: none;
+    text-align: center;
+
+}
+.pure-button:focus {
+    outline: 0
+}
+
+.button-success, .button-error, .button-warning, .button-secondary {
+    color: white;
+    border-radius: 4px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.button-warning {
+    background: DarkOrange;
+}
+.button-secondary {
+    background: CornflowerBlue;
+}

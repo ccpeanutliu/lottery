@@ -1,0 +1,46 @@
+html, body {width: 100%; height: 100%;}
+.wall {
+    width: 100%; height: 100%;
+    background-color: black;
+    overflow: hidden;
+
+    display: grid;
+    grid-template-columns: 25% auto;
+    grid-template-rows: 64px auto;
+}
+.wall *{
+    position: relative;
+}
+
+.wall::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: url(../img/background.jpeg);
+    filter: grayscale(100%) blur(5px);;
+    background-size: 100% 100% ;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: 0.1;
+}
+
+.wall #title{
+    display: flex;
+    grid-column-start: 1;
+    grid-column-end: 3;
+    background:  #272727;
+    padding: 16px;
+    align-items: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: solid 1px #777;
+}
+
+.wall #sidebar{
+    padding: 24px;
+    background:  rgba(0,0,0,0.3);
+    color:  white;
+    border-right:  solid 1px #333;
+}
